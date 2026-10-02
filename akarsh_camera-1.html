@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>AKARSH Camera</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Arial,sans-serif}
+body{touch-action:none}.app{position:fixed;inset:0;overflow:hidden;background:#000}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;transform-origin:center;transition:transform:.12s linear}
+#flashOverlay{position:absolute;inset:0;z-index:300;background:#fff;opacity:0;pointer-events:none}
+#flashOverlay.fire{animation:flash .16s ease-out}@keyframes flash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+.glass{background:rgba(20,20,22,.55);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.top{position:absolute;top:0;left:0;right:0;z-index:50;padding:calc(env(safe-area-inset-top) + 12px) 14px 10px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.brand{display:flex;align-items:center;gap:9px}.logo{width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:#fff;color:#000;font-size:12px;font-weight:900}.brandText{font-size:13px;font-weight:800;letter-spacing:.13em}
+.topButtons{display:flex;gap:7px;pointer-events:auto}.topButton{height:40px;min-width:58px;padding:0 12px;border-radius:21px;background:rgba(15,15,17,.62);border:1px solid rgba(255,255,255,.2);font-size:10px;font-weight:800;letter-spacing:.04em}.topButton.active{background:#fff;color:#000}
+#fullscreen{position:absolute;right:14px;top:calc(env(safe-area-inset-top) + 65px);z-index:120;height:44px;min-width:126px;padding:0 15px;border-radius:23px;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(10,10,12,.76);border:1px solid rgba(255,255,255,.32);box-shadow:0 8px 25px rgba(0,0,0,.35);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);font-size:10px;font-weight:900;letter-spacing:.08em}
+.fsIcon{width:17px;height:17px;position:relative}.fsIcon:before{content:"";position:absolute;inset:1px;border:2px solid #fff;border-radius:2px}
+#status{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 120px);transform:translateX(-50%);z-index:80;padding:8px 13px;border-radius:17px;background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.16);font-size:10px;font-weight:800;letter-spacing:.05em;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}#status.show{opacity:1}
+#horizon{position:absolute;left:50%;top:50%;width:min(72vw,430px);height:100px;transform:translate(-50%,-50%);z-index:25;opacity:0;transition:opacity .2s;pointer-events:none}#horizon.show{opacity:1}.hLine{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.85);box-shadow:0 0 10px rgba(255,255,255,.4)}.hCenter{position:absolute;left:50%;top:50%;width:11px;height:11px;border:1px solid white;border-radius:50%;transform:translate(-50%,-50%)}.hText{position:absolute;left:50%;bottom:0;transform:translateX(-50%);padding:5px 9px;border-radius:9px;background:rgba(0,0,0,.55);font-size:9px;font-weight:800;letter-spacing:.08em}
+#focus{position:absolute;width:72px;height:72px;border:1px solid #ffd447;border-radius:5px;transform:translate(-50%,-50%) scale(1.15);opacity:0;z-index:35;pointer-events:none}#focus.show{opacity:1;transform:translate(-50%,-50%) scale(1);transition:.15s}
+.modes{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 202px);left:50%;transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:21px;padding:9px 15px;border-radius:25px;white-space:nowrap;pointer-events:auto}.mode{background:none;color:rgba(255,255,255,.55);font-size:10px;font-weight:800}.mode.active{color:#fff}
+.zoomBar{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 151px);left:50%;transform:translateX(-50%);z-index:45;display:flex;gap:7px;pointer-events:auto}.zoom{width:39px;height:39px;border-radius:50%;background:rgba(15,15,17,.6);border:1px solid rgba(255,255,255,.18);font-size:10px;font-weight:800}.zoom.active{background:#fff;color:#000}
+.quickBar{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 104px);left:50%;transform:translateX(-50%);z-index:45;display:flex;gap:7px;pointer-events:auto}.quick{height:36px;padding:0 11px;border-radius:18px;background:rgba(15,15,17,.58);border:1px solid rgba(255,255,255,.17);font-size:9px;font-weight:900;letter-spacing:.04em}.quick.active{background:#fff;color:#000}
+.bottom{position:absolute;left:0;right:0;bottom:0;z-index:45;padding:0 18px calc(env(safe-area-inset-bottom) + 18px);display:flex;justify-content:space-between;align-items:center;pointer-events:none}.side{width:62px;height:62px;display:flex;align-items:center;justify-content:center;pointer-events:auto}.sideButton{width:52px;height:52px;border-radius:50%;background:rgba(15,15,17,.6);border:1px solid rgba(255,255,255,.2);font-size:8px;font-weight:900}#thumb{background-size:cover;background-position:center}.shutter{position:relative;width:82px;height:82px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.5);box-shadow:0 0 0 2px rgba(0,0,0,.4)}.shutter:after{content:"";position:absolute;width:67px;height:67px;border:2px solid rgba(0,0,0,.13);border-radius:50%;transform:translate(-50%,-50%);left:50%;top:50%}.shutter:active{transform:scale(.93)}
+#gate{position:absolute;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at 50% 35%,#202025 0,#09090a 48%,#000 100%)}#gate.hidden{display:none}.gateCard{width:min(410px,100%);padding:28px 23px;text-align:center;border-radius:30px;background:rgba(30,30,34,.78);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}.gateLogo{width:62px;height:62px;margin:0 auto 17px;border-radius:20px;display:grid;place-items:center;background:#fff;color:#000;font-size:19px;font-weight:900}.gateCard h1{margin:0 0 9px;font-size:25px}.gateCard p{margin:0 0 20px;color:rgba(255,255,255,.66);font-size:13px;line-height:1.55}#start{width:100%;height:52px;border-radius:26px;background:#fff;color:#000;font-size:13px;font-weight:900}#start:disabled{opacity:.55}.gateHint{margin-top:14px;color:#999;font-size:10px;line-height:1.55}
+#viewer{position:absolute;inset:0;z-index:600;display:none;flex-direction:column;background:#000}#viewer.open{display:flex}.viewerTop{height:calc(env(safe-area-inset-top) + 68px);padding:calc(env(safe-area-inset-top) + 10px) 14px 9px;display:flex;align-items:flex-end;justify-content:space-between;background:linear-gradient(#000,transparent)}.viewerButton{min-width:68px;height:38px;padding:0 12px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:10px;font-weight:900}.viewerTitle{font-size:13px;font-weight:800}.viewerImage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}#photo{max-width:100%;max-height:100%;object-fit:contain}.viewerBottom{display:flex;gap:8px;padding:11px 13px calc(env(safe-area-inset-bottom) + 15px);background:linear-gradient(transparent,#000)}.viewerAction{flex:1;height:48px;border-radius:24px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);font-size:10px;font-weight:900}.viewerAction.primary{background:#fff;color:#000}
+#recording{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 116px);transform:translateX(-50%);z-index:70;display:none;padding:7px 12px;border-radius:18px;background:rgba(255,0,0,.7);font-size:10px;font-weight:900}#recording.show{display:block}
+@media(max-height:650px){.modes{bottom:180px}.zoomBar{bottom:133px}.quickBar{bottom:91px}.shutter{width:72px;height:72px}}
+</style>
+</head>
+<body>
+<div class="app">
+<video id="video" autoplay muted playsinline></video><canvas id="canvas" hidden></canvas><div id="flashOverlay"></div>
+<div class="top"><div class="brand"><div class="logo">AK</div><div class="brandText">AKARSH</div></div><div class="topButtons"><button class="topButton" id="flash">FLASH OFF</button><button class="topButton" id="switchCamera">SWITCH</button></div></div>
+<button id="fullscreen"><span class="fsIcon"></span>FULLSCREEN</button><div id="status"></div>
+<div id="horizon"><div class="hLine"></div><div class="hCenter"></div><div class="hText" id="horizonText">HORIZON LOCK 0°</div></div><div id="focus"></div>
+<div class="modes glass"><button class="mode" data-mode="CINEMATIC">CINEMATIC</button><button class="mode" data-mode="VIDEO">VIDEO</button><button class="mode active" data-mode="PHOTO">PHOTO</button><button class="mode" data-mode="PORTRAIT">PORTRAIT</button><button class="mode" data-mode="NIGHT">NIGHT</button></div>
+<div class="zoomBar"><button class="zoom" data-zoom=".5">0.5</button><button class="zoom active" data-zoom="1">1</button><button class="zoom" data-zoom="2">2</button><button class="zoom" data-zoom="3">3</button><button class="zoom" data-zoom="5">5</button></div>
+<div class="quickBar"><button class="quick" id="stabilize">STABILIZE</button><button class="quick" id="horizonButton">HORIZON</button><button class="quick" id="enhance">AI ENHANCE</button><button class="quick" id="portraitButton">PORTRAIT</button></div>
+<div class="bottom"><div class="side"><button class="sideButton" id="thumb">GALLERY</button></div><button class="shutter" id="shutter" aria-label="Take photo"></button><div class="side"><button class="sideButton" id="info">INFO</button></div></div>
+<div id="recording">RECORDING</div>
+<div id="gate"><div class="gateCard"><div class="gateLogo">AK</div><h1>AKARSH Camera</h1><p id="gateMessage">Allow camera access to start the camera.</p><button id="start">START CAMERA</button><div class="gateHint" id="gateHint">Camera access requires HTTPS or localhost. Camera access may not work when this HTML file is opened directly.</div></div></div>
+<div id="viewer"><div class="viewerTop"><button class="viewerButton" id="closeViewer">CLOSE</button><div class="viewerTitle">PHOTO</div><button class="viewerButton" id="saveTop">SAVE</button></div><div class="viewerImage"><img id="photo" alt="AKARSH captured photo"></div><div class="viewerBottom"><button class="viewerAction" id="enhancePhoto">ENHANCE</button><button class="viewerAction" id="portraitPhoto">PORTRAIT</button><button class="viewerAction primary" id="savePhoto">SAVE PHOTO</button></div></div>
+</div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const video=$("video"),canvas=$("canvas"),ctx=canvas.getContext("2d"),gate=$("gate"),startButton=$("start"),gateMessage=$("gateMessage"),status=$("status"),shutter=$("shutter"),flashButton=$("flash"),switchCamera=$("switchCamera"),fullscreen=$("fullscreen"),enhanceButton=$("enhance"),portraitButton=$("portraitButton"),stabilizeButton=$("stabilize"),horizonButton=$("horizonButton"),horizon=$("horizon"),horizonText=$("horizonText"),focus=$("focus"),flashOverlay=$("flashOverlay"),viewer=$("viewer"),photo=$("photo"),thumb=$("thumb"),closeViewer=$("closeViewer"),saveTop=$("saveTop"),savePhoto=$("savePhoto"),enhancePhoto=$("enhancePhoto"),portraitPhoto=$("portraitPhoto"),recording=$("recording");
+let stream=null,facing="environment",flashMode="OFF",torchOn=false,zoom=1,currentMode="PHOTO",enhancement=false,portrait=false,stabilization=true,horizonLock=false,roll=0,lastBlob=null,lastURL=null,starting=false,mediaRecorder=null,recordingChunks=[];
+
+function showStatus(message,time=2000){status.textContent=message;status.classList.add("show");clearTimeout(showStatus.timer);showStatus.timer=setTimeout(()=>status.classList.remove("show"),time)}
+function stopCamera(){if(stream){stream.getTracks().forEach(t=>{try{t.stop()}catch(e){}});stream=null}video.srcObject=null}
+function waitForVideo(){return new Promise(resolve=>{if(video.readyState>=2&&video.videoWidth)return resolve();const done=()=>{video.removeEventListener("loadedmetadata",done);resolve()};video.addEventListener("loadedmetadata",done);setTimeout(resolve,3000)})}
+async function configureTrack(){const track=stream?.getVideoTracks?.()[0];if(!track)return;const caps=track.getCapabilities?.()||{};torchSupported=!!caps.torch;flashButton.disabled=!torchSupported;flashButton.textContent=torchSupported&&torchOn?"FLASH ON":"FLASH OFF";if(caps.zoom){const z=Math.min(Math.max(zoom,caps.zoom.min),caps.zoom.max);zoom=z;applyZoom()}else applyZoom()}
+async function startCamera(){
+ if(starting)return;starting=true;startButton.disabled=true;startButton.textContent="STARTING";gateMessage.textContent="Requesting camera access...";
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error("BROWSER_CAMERA_UNAVAILABLE");
+  if(!window.isSecureContext&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")throw new Error("SECURE_CONTEXT_REQUIRED");
+  stopCamera();
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}},audio:false})}
+  catch(e){stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
+  video.srcObject=stream;video.muted=true;video.playsInline=true;await video.play();await waitForVideo();
+  gate.classList.add("hidden");startButton.disabled=false;startButton.textContent="START CAMERA";starting=false;showStatus("CAMERA READY");await configureTrack();
+ }catch(error){
+  console.error(error);stopCamera();starting=false;startButton.disabled=false;startButton.textContent="START CAMERA";
+  const m=error?.name==="NotAllowedError"?"Camera permission was denied. Allow camera permission in your browser settings.":error?.message==="SECURE_CONTEXT_REQUIRED"?"Camera requires HTTPS or localhost.":error?.message==="BROWSER_CAMERA_UNAVAILABLE"?"This browser does not support camera access.":"Could not start the camera. Check permission and try again.";
+  gateMessage.textContent=m;showStatus("CAMERA ERROR",2500);
+ }
+}
+function applyZoom(){video.style.transform=`scale(${Math.max(.5,zoom)})`;const track=stream?.getVideoTracks?.()[0],caps=track?.getCapabilities?.();if(track&&caps?.zoom){track.applyConstraints({advanced:[{zoom:Math.min(Math.max(zoom,caps.zoom.min),caps.zoom.max)}]}).catch(()=>{})}}
+async function toggleFlash(){const track=stream?.getVideoTracks?.()[0];if(!track||!torchSupported){showStatus("FLASH NOT SUPPORTED");return}torchOn=!torchOn;try{await track.applyConstraints({advanced:[{torch:torchOn}]});flashMode=torchOn?"ON":"OFF";flashButton.textContent=`FLASH ${flashMode}`;flashButton.classList.toggle("active",torchOn)}catch(e){torchOn=!torchOn;showStatus("FLASH UNAVAILABLE")}}
+async function switchCam(){facing=facing==="environment"?"user":"environment";showStatus("SWITCHING CAMERA");await startCamera()}
+function focusAt(x,y){focus.style.left=x+"px";focus.style.top=y+"px";focus.classList.add("show");clearTimeout(focus.timer);focus.timer=setTimeout(()=>focus.classList.remove("show"),900)}
+async function takePhoto(){
+ if(!stream||video.readyState<2){showStatus("START CAMERA FIRST");return}
+ if(currentMode==="VIDEO"){return toggleRecording()}
+ flashOverlay.classList.remove("fire");void flashOverlay.offsetWidth;flashOverlay.classList.add("fire");
+ const w=video.videoWidth,h=video.videoHeight;if(!w||!h)return;
+ canvas.width=w;canvas.height=h;ctx.save();
+ if(facing==="user"){ctx.translate(w,0);ctx.scale(-1,1)}
+ ctx.drawImage(video,0,0,w,h);ctx.restore();
+ if(enhancement)enhanceCanvas();if(portrait)portraitCanvas();
+ canvas.toBlob(blob=>{if(!blob)return;lastBlob=blob;if(lastURL)URL.revokeObjectURL(lastURL);lastURL=URL.createObjectURL(blob);photo.src=lastURL;thumb.style.backgroundImage=`url("${lastURL}")`;viewer.classList.add("open");showStatus("PHOTO CAPTURED")}, "image/jpeg", .94);
+}
+function enhanceCanvas(){const img=ctx.getImageData(0,0,canvas.width,canvas.height),d=img.data;for(let i=0;i<d.length;i+=4){d[i]=Math.min(255,(d[i]-128)*1.08+128);d[i+1]=Math.min(255,(d[i+1]-128)*1.08+128);d[i+2]=Math.min(255,(d[i+2]-128)*1.08+128)}ctx.putImageData(img,0,0)}
+function portraitCanvas(){const g=ctx.createRadialGradient(canvas.width/2,canvas.height*.42,canvas.width*.18,canvas.width/2,canvas.height*.5,canvas.width*.72);g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.18)");ctx.fillStyle=g;ctx.fillRect(0,0,canvas.width,canvas.height)}
+function downloadPhoto(){if(!lastBlob)return showStatus("NO PHOTO");const a=document.createElement("a");a.href=lastURL;a.download=`AKARSH_${new Date().toISOString().replace(/[:.]/g,"-")}.jpg`;document.body.appendChild(a);a.click();a.remove();showStatus("SAVE STARTED")}
+async function toggleRecording(){
+ if(!stream)return;
+ if(mediaRecorder?.state==="recording"){mediaRecorder.stop();return}
+ if(!window.MediaRecorder){showStatus("VIDEO RECORDING UNSUPPORTED");return}
+ recordingChunks=[];const mime=["video/webm;codecs=vp9","video/webm","video/mp4"].find(x=>MediaRecorder.isTypeSupported(x));mediaRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+ mediaRecorder.ondataavailable=e=>{if(e.data.size)recordingChunks.push(e.data)}
+ mediaRecorder.onstop=()=>{const blob=new Blob(recordingChunks,{type:mediaRecorder.mimeType||"video/webm"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`AKARSH_VIDEO_${Date.now()}.webm`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);recording.classList.remove("show");showStatus("VIDEO SAVED")}
+ mediaRecorder.start();recording.classList.add("show");showStatus("RECORDING");
+}
+function setMode(mode){currentMode=mode;document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));recording.classList.toggle("show",false);showStatus(mode)}
+function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.()}
+function handleOrientation(e){if(!horizonLock)return;roll=e.gamma||0;horizon.style.transform=`translate(-50%,-50%) rotate(${-roll}deg)`;horizonText.textContent=`HORIZON LOCK ${Math.round(roll)}°`}
+startButton.onclick=startCamera;flashButton.onclick=toggleFlash;switchCamera.onclick=switchCam;shutter.onclick=takePhoto;fullscreen.onclick=toggleFullscreen;
+document.querySelectorAll(".zoom").forEach(b=>b.onclick=()=>{zoom=Number(b.dataset.zoom);document.querySelectorAll(".zoom").forEach(x=>x.classList.toggle("active",x===b));applyZoom()});
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+enhanceButton.onclick=()=>{enhancement=!enhancement;enhanceButton.classList.toggle("active",enhancement);showStatus(`AI ENHANCE ${enhancement?"ON":"OFF"}`)};
+portraitButton.onclick=()=>{portrait=!portrait;portraitButton.classList.toggle("active",portrait);showStatus(`PORTRAIT ${portrait?"ON":"OFF"}`)};
+stabilizeButton.onclick=()=>{stabilization=!stabilization;stabilizeButton.classList.toggle("active",stabilization);showStatus(`STABILIZE ${stabilization?"ON":"OFF"}`)};
+horizonButton.onclick=async()=>{horizonLock=!horizonLock;horizonButton.classList.toggle("active",horizonLock);horizon.classList.toggle("show",horizonLock);if(horizonLock&&typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){try{const p=await DeviceOrientationEvent.requestPermission();if(p!=="granted")throw 0}catch(e){showStatus("SENSOR PERMISSION NEEDED")}}};
+window.addEventListener("deviceorientation",handleOrientation);
+video.addEventListener("pointerdown",e=>{if(e.target!==video)return;focusAt(e.clientX,e.clientY)});
+thumb.onclick=()=>{if(lastURL){photo.src=lastURL;viewer.classList.add("open")}else showStatus("NO PHOTO YET")};
+closeViewer.onclick=()=>viewer.classList.remove("open");saveTop.onclick=downloadPhoto;savePhoto.onclick=downloadPhoto;
+enhancePhoto.onclick=()=>{enhancement=true;showStatus("ENHANCE ENABLED — TAKE ANOTHER PHOTO")};
+portraitPhoto.onclick=()=>{portrait=true;showStatus("PORTRAIT ENABLED — TAKE ANOTHER PHOTO")};
+$("info").onclick=()=>showStatus(`AKARSH CAMERA • ${currentMode} • ${zoom}X`);
+document.addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();takePhoto()}if(e.key==="f")toggleFlash()});
+window.addEventListener("beforeunload",()=>{stopCamera();if(lastURL)URL.revokeObjectURL(lastURL)});
+</script>
+</body>
+</html>
